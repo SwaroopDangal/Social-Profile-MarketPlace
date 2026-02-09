@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { ArrowLeftIcon, FilterIcon, Verified } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import ListingCard from "../components/ListingCard";
 import FilterSidebar from "../components/FilterSidebar";
 
 const MarketPlace = () => {
+  const [searchParams] = useSearchParams();
+  const search = searchParams.get("search") || "";
   const [showFilterPhone, setShowFilterPhone] = useState(false);
   const [filters, setFilters] = useState({
     platform: null,
@@ -17,6 +19,32 @@ const MarketPlace = () => {
   });
   const { listings } = useSelector((state) => state.listing);
   const filterListings = listings.filter((listing) => {
+    if (filters.platform && filters.platform.length > 0) {
+      if (!filters.platform.includes(listing.platform)) return false;
+    }
+    if (filters.maxPrice) {
+      if (listing.price > filters.maxPrice) return false;
+    }
+    if (filters.minFollowers) {
+      if (listing.followers < filters.minFollowers) return false;
+    }
+    if (filters.niche && filters.niche.length > 0) {
+      if (!filters.niche.includes(listing.niche)) return false;
+    }
+    if (filters.verified && listing.verified !== filters.verified) return false;
+    if (filters.monetized && listing.monetized !== filters.monetized)
+      return false;
+    if (search) {
+      const trimmed = search.trim();
+      if (
+        !listing.title.toLowerCase().includes(trimmed.toLowerCase()) &&
+        !listing.username.toLowerCase().includes(trimmed.toLowerCase()) &&
+        !listing.description.toLowerCase().includes(trimmed.toLowerCase()) &&
+        !listing.platform.toLowerCase().includes(trimmed.toLowerCase()) &&
+        !listing.niche.toLowerCase().includes(trimmed.toLowerCase())
+      )
+        return false;
+    }
     return true;
   });
   const navigate = useNavigate();
