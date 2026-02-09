@@ -77,7 +77,7 @@ const FilterSidebar = ({
     { value: "business", label: "Business" },
     { value: "beauty", label: "Beauty" },
     { value: "education", label: "Education" },
-    { value: "entertainment", label: "Entertaiment" },
+    { value: "entertainment", label: "Entertainment" },
     { value: "music", label: "Music" },
     { value: "art", label: "Art" },
     { value: "sports", label: "Sports" },
@@ -86,15 +86,15 @@ const FilterSidebar = ({
   ];
   return (
     <div
-      className={`${showFilterPhone ? "max-sm:fixed" : "max-sm:hidden"} max-sm:inset-0 z-100 max-sm:h-screen max-sm:overflow-scroll bg-white rounded-lg shadow-sm border border-gray-200 h-fit sticky top-24 md:min-w-[300px]`}
+      className={`${showFilterPhone ? "max-sm:fixed" : "max-sm:hidden"} max-sm:inset-0 z-100 max-sm:h-screen max-sm:overflow-scroll bg-white rounded-lg shadow-sm border border-gray-200 h-fit sticky top-24 md:min-w-75`}
     >
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <div className="flex items-center sapce-x-2 text-gray-700">
+          <div className="flex items-center space-x-2 text-gray-700">
             <Filter className="size-4" />
             <h3 className="font-semibold">Filters</h3>
           </div>
-          <div className="flex items-centr gap-2">
+          <div className="flex items-center gap-2">
             <X
               className="size-6 text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
               onClick={onClearFilters}
