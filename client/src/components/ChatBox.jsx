@@ -96,7 +96,7 @@ const ChatBox = () => {
             <div className="flex items-center justify-center h-full">
               <div className="text-center ">
                 <p className="text-gray-500 mb-2">No messages yet</p>
-                <p className="text-sm text-grey-400">Start the converation!</p>
+                <p className="text-sm text-grey-400">Start the conversation!</p>
               </div>
             </div>
           ) : (
