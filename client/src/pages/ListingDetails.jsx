@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getProfileLink, platformIcons } from "../assets/assets";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +14,7 @@ import {
   Eye,
   LineChart,
   Loader2Icon,
+  MapPin,
   MessageSquareMoreIcon,
   ShoppingBagIcon,
   Users,
@@ -24,12 +25,15 @@ const ListingDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const currency = import.meta.env.VITE_CURRENCY || "$";
+  const { listingId } = useParams();
+  const { listings } = useSelector((state) => state.listing);
+
+  const listing = useMemo(() => {
+    return listings.find((item) => item.id === listingId);
+  }, [listingId, listings]);
 
   const profileLink =
     listing && getProfileLink(listing.platform, listing.username);
-
-  const { listingId } = useParams();
-  const { listings } = useSelector((state) => state.listing);
 
   const [current, setCurrent] = useState(0);
   const images = listing?.images || [];
@@ -40,10 +44,6 @@ const ListingDetails = () => {
     setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
   const purchaseAccount = () => {};
-
-  const listing = useMemo(() => {
-    return listings.find((listing) => listing.id === listingId);
-  }, [listingId, listings]);
 
   const loadChatbox = () => {
     dispatch(setChat({ listing }));
