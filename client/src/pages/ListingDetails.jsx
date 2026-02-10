@@ -1,8 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProfileLink, platformIcons } from "../assets/assets";
 import { useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeftIcon,
   ArrowUpRightFromSquareIcon,
@@ -15,10 +15,13 @@ import {
   LineChart,
   Loader2Icon,
   MessageSquareMoreIcon,
+  ShoppingBagIcon,
   Users,
 } from "lucide-react";
+import { setChat } from "../app/features/chatSlice";
 
 const ListingDetails = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const currency = import.meta.env.VITE_CURRENCY || "$";
 
@@ -36,9 +39,15 @@ const ListingDetails = () => {
   const nextSlide = () =>
     setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
 
+  const purchaseAccount = () => {};
+
   const listing = useMemo(() => {
     return listings.find((listing) => listing.id === listingId);
   }, [listingId, listings]);
+
+  const loadChatbox = () => {
+    dispatch(setChat({ listing }));
+  };
 
   return listing ? (
     <div className="mx-auto min-h-screen px-6 md:px-16 lg:px-24 xl:px-32">
