@@ -20,6 +20,8 @@ import {
   Users,
 } from "lucide-react";
 import { setChat } from "../app/features/chatSlice";
+import { useUser } from "@clerk/clerk-react";
+import toast from "react-hot-toast";
 
 const ListingDetails = () => {
   const dispatch = useDispatch();
@@ -27,6 +29,7 @@ const ListingDetails = () => {
   const currency = import.meta.env.VITE_CURRENCY || "$";
   const { listingId } = useParams();
   const { listings } = useSelector((state) => state.listing);
+  const { user, isLoaded } = useUser();
 
   const listing = useMemo(() => {
     return listings.find((item) => item.id === listingId);
@@ -46,6 +49,12 @@ const ListingDetails = () => {
   const purchaseAccount = () => {};
 
   const loadChatbox = () => {
+    if (!isLoaded && !user) {
+      return toast.error("Please login to continue");
+    }
+    if (user.id === listing.ownerId) {
+      return toast.error("You cannot chat on your own listing");
+    }
     dispatch(setChat({ listing }));
   };
 
