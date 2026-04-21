@@ -100,64 +100,84 @@ export const updateListing = async (req, res) => {
         const { userId } = await req.auth();
         const accountDetails = JSON.parse(req.body.accountDetails);
 
-        if (req.files.length + accountDetails.images.length > 5) {
-            return res.status(400).json({ error: "You can upload a maximum of 5 images per listing." });
+        if ((req.files?.length || 0) + accountDetails.images.length > 5) {
+            return res.status(400).json({
+                error: "You can upload a maximum of 5 images per listing."
+            });
         }
 
-        accountDetails.followers_count = parseFloat(accountDetails.followers_count);
-        accountDetails.engagement_rate = parseFloat(accountDetails.engagement_rate);
-        accountDetails.monthly_views = parseFloat(accountDetails.monthly_views);
-        accountDetails.price = parseFloat(accountDetails.price);
+        accountDetails.followers_count = Number(accountDetails.followers_count);
+        accountDetails.engagement_rate = Number(accountDetails.engagement_rate);
+        accountDetails.monthly_views = Number(accountDetails.monthly_views);
+        accountDetails.price = Number(accountDetails.price);
         accountDetails.platform = accountDetails.platform.toLowerCase();
         accountDetails.niche = accountDetails.niche.toLowerCase();
-        accountDetails.username.startsWith("@") ? accountDetails.username = accountDetails.username.slice(1) : null;
 
-        const listing = await prisma.listing.update({
-            where: { id: accountDetails.id, ownerId: userId },
-            data: accountDetails,
+        if (accountDetails.username?.startsWith("@")) {
+            accountDetails.username = accountDetails.username.slice(1);
+        }
 
-        })
+        const {
+            ownerId,
+            createdAt,
+            updatedAt,
+            image, // 🚫 remove invalid field
+            ...safeData
+        } = accountDetails;
 
-        if (!listing) {
+        // 🔐 fetch first
+        const existingListing = await prisma.listing.findUnique({
+            where: { id: accountDetails.id }
+        });
+
+        if (!existingListing) {
             return res.status(404).json({ error: "Listing not found" });
         }
-        if (listing.status === "sold") {
+
+        if (existingListing.ownerId !== userId) {
+            return res.status(403).json({ error: "Unauthorized" });
+        }
+
+        if (existingListing.status === "sold") {
             return res.status(400).json({ error: "You cannot update a sold listing" });
         }
-        if (req.files.length > 0) {
+
+        // 📸 upload images if any
+        let newImages = accountDetails.images;
+
+        if (req.files?.length > 0) {
             const uploadImages = req.files.map(async (file) => {
                 const response = await imageKit.files.upload({
                     file: fs.createReadStream(file.path),
                     fileName: `${Date.now()}.png`,
                     folder: "filpearn",
-                    transformation: { pre: 'w-1280,h-auto' },
+                    transformation: { pre: "w-1280,h-auto" }
                 });
                 return response.url;
-            })
+            });
 
-            const images = await Promise.all(uploadImages);
-
-            const listing = await prisma.listing.update({
-                where: { id: accountDetails.id, ownerId: userId },
-                data: {
-                    ownerId: userId,
-                    images: [...accountDetails.images, ...images],
-                    ...accountDetails,
-                }
-            })
-
-            return res.status(200).json({ message: "Listing updated successfully", listing });
+            const uploaded = await Promise.all(uploadImages);
+            newImages = [...accountDetails.images, ...uploaded];
         }
-        res.status(200).json({ message: "Listing updated successfully", listing });
 
+        const listing = await prisma.listing.update({
+            where: { id: accountDetails.id },
+            data: {
+                ...safeData,
+                images: newImages
+            }
+        });
 
-
+        res.status(200).json({
+            message: "Listing updated successfully",
+            listing
+        });
 
     } catch (error) {
-        res.status(500).json({ error: error.message });
         console.error(error);
+        res.status(500).json({ error: error.message });
     }
-}
+};
 
 // Toggle listing status
 export const toggleStatus = async (req, res) => {
@@ -220,10 +240,10 @@ export const deleteListing = async (req, res) => {
 export const addCredentials = async (req, res) => {
     try {
         const { userId } = await req.auth();
-        const { listingId, credentials } = req.body;
+        const { listingId, credential } = req.body;
 
-        if (!listingId || !credentials) {
-            return res.status(400).json({ error: "Listing ID and credentials are required" });
+        if (!listingId || !credential) {
+            return res.status(400).json({ error: "Listing ID and credential are required" });
         }
         const listing = await prisma.listing.findFirst({
             where: { id: listingId, ownerId: userId },
@@ -235,7 +255,7 @@ export const addCredentials = async (req, res) => {
         await prisma.credential.create({
             data: {
                 listingId,
-                originalCredential: credentials,
+                originalCredential: credential,
             }
         })
         await prisma.listing.update({
@@ -255,7 +275,7 @@ export const markFeatured = async (req, res) => {
         const { userId } = await req.auth();
         const { id } = req.params;
         if (req.plan !== "premium") {
-            return res.status(403).json({ error: "You need to be on the premium plan to access this feature" });
+            return res.json({ message: "You need to be on the premium plan to access this feature" });
         }
         await prisma.listing.updateMany({
             where: { id, ownerId: userId },
@@ -347,4 +367,4 @@ export const withdrawAmount = async (req, res) => {
 }
 
 // purchase account
-export const purchaseAccount = async (req, res) => {}
+export const purchaseAccount = async (req, res) => { }
