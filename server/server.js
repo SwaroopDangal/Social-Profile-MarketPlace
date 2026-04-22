@@ -5,6 +5,7 @@ import { clerkMiddleware } from '@clerk/express'
 import { serve } from 'inngest/express'
 import { inngest, functions } from './inngest/index.js'
 import listingRoutes from "./routes/listingRoutes.js"
+import chatRoutes from "./routes/chatRoutes.js"
 
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(clerkMiddleware())
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/listing", listingRoutes);
+app.use("/api/chat", chatRoutes);
 
 
 
