@@ -1,11 +1,49 @@
-import { createSlice } from "@reduxjs/toolkit"
-import { dummyListings } from "../../assets/assets"
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
+import api from "../../configs/axios"
+
+// get all public listings
+export const getAllPublicListing = createAsyncThunk(
+    "listing/getAllPublicListing",
+    async () => {
+        try {
+            const { data } = await api.get('/api/listing/public')
+            return data;
+
+        } catch (error) {
+            console.log(error)
+            return [];
+
+        }
+
+    })
+
+// get all user listings
+export const getAllUserListings = createAsyncThunk(
+    "listing/getAllUserListings",
+    async ({ getToken }) => {
+        try {
+            const token = await getToken();
+            const { data } = await api.get('/api/listing/user', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            return data;
+
+
+        } catch (error) {
+            console.log(error)
+            return [];
+
+        }
+
+    })
 
 const listingSlice = createSlice({
     name: "listing",
     initialState: {
-        listings: dummyListings,
-        userListings: dummyListings,
+        listings: [],
+        userListings: [],
         balance: {
             earned: 0,
             withdrawn: 0,
@@ -17,6 +55,15 @@ const listingSlice = createSlice({
             state.listings = action.payload
         },
 
+    },
+    extraReducers: (builder) => {
+        builder.addCase(getAllPublicListing.fulfilled, (state, action) => {
+            state.listings = action.payload.listings
+        })
+        builder.addCase(getAllUserListings.fulfilled, (state, action) => {
+            state.userListings = action.payload.listings;
+            state.balance = action.payload.balance;
+        })
     }
 })
 
